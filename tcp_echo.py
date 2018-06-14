@@ -1,3 +1,4 @@
+import select
 import socket
 import sys
 
@@ -11,20 +12,26 @@ def process():
   port = TCP_PORT
   if len(sys.argv) > 1:
     port = int(sys.argv[1])
-  s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-  s.bind((TCP_IP, port))
-  s.listen(1)
+  server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  server.setblocking(0)
+  server.bind((TCP_IP, port))
+  server.listen(1)
+  inputs = [server]
   print('Listening on TCP port %s' % port)
   print('Connect using:')
   print('telnet 127.0.0.1 %s' % port)
-
-  conn, addr = s.accept()
-  print('Connection from: %s' % (addr, ))
   while True:
-    data = conn.recv(BUFFER_SIZE)
-    if not data:
-      break
-    print('Received data: %r' % (data, ))
+    readable, writable, exceptional = select.select(inputs, [], [])
+    for s in readable:
+      if s is server:
+        conn, addr = s.accept()
+        print('Connection from: %s' % (addr, ))
+        conn.setblocking(0)
+        inputs.append(conn)
+      else:
+        data = s.recv(BUFFER_SIZE)
+        if data:
+          print('Received data: %r' % (data, ))
 
 
 if __name__ == '__main__':
