@@ -19,12 +19,12 @@ def process():
   print('telnet 127.0.0.1 %s' % port)
 
   conn, addr = s.accept()
-  print('Connection from: %s', addr)
+  print('Connection from: %s' % addr)
   while True:
     data = conn.recv(BUFFER_SIZE)
     if not data:
       break
-    print('Received data: %r', data)
+    print('Received data: %r' % data)
 
 
 if __name__ == '__main__':
