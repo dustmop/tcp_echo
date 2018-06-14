@@ -16,10 +16,11 @@ def process():
   server.setblocking(0)
   server.bind((TCP_IP, port))
   server.listen(1)
-  inputs = [server]
+  inputs = [server, sys.stdin]
   print('Listening on TCP port %s' % port)
   print('Connect using:')
   print('telnet 127.0.0.1 %s' % port)
+  conn = None
   while True:
     readable, writable, exceptional = select.select(inputs, [], [])
     for s in readable:
@@ -28,6 +29,14 @@ def process():
         print('Connection from: %s' % (addr, ))
         conn.setblocking(0)
         inputs.append(conn)
+      elif s is sys.stdin:
+        buffer = ''
+        while True:
+          k = sys.stdin.read(1)
+          buffer += k
+          if k == '\n':
+            break
+        conn.send(buffer)
       else:
         data = s.recv(BUFFER_SIZE)
         if data:
